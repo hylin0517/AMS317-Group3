@@ -9,8 +9,17 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Uploading the dataset
+# Read Data
 ```{r}
-
+library(readr)
+data <- read_csv("/Users/hyl/Downloads/AB_NYC_2019.csv")
+head(data)
 ```
+
+# Check for Missing Data
+```{r}
+sapply(data, function(x) sum(is.na(x)))
+```
+
+
 
