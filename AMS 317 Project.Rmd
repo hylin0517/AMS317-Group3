@@ -11,6 +11,78 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Uploading the dataset
 ```{r}
+# Load the dataset
+data <- read.csv("airbnb.csv")
 
+# Summary statistics
+summary(data %>% select(price, reviews_per_month, calculated_host_listings_count))
 ```
 
+# Cleaning the dataset
+```{r}
+# Count rows where number_of_reviews is 0 and reviews_per_month is NA
+count_na_reviews_per_month <- sum(is.na(data$reviews_per_month) & data$number_of_reviews == 0)
+
+# Count total rows where number_of_reviews is 0
+count_zero_reviews <- sum(data$number_of_reviews == 0)
+
+# Check if all rows with number_of_reviews == 0 have reviews_per_month as NA
+all_zero_reviews_are_na <- count_na_reviews_per_month == count_zero_reviews
+all_zero_reviews_are_na
+
+# Replace NA values in reviews_per_month with 0 where number_of_reviews is 0
+data <- data %>%
+  mutate(reviews_per_month = ifelse(is.na(reviews_per_month) & number_of_reviews == 0, 0, reviews_per_month))
+```
+
+# Exploring dataset
+```{r}
+# Summary statistics for room types
+data %>%
+  group_by(room_type) %>%
+  summarise(
+    count = n(),
+    avg_price = mean(price, na.rm = TRUE),
+    avg_reviews_per_month = mean(reviews_per_month, na.rm = TRUE)
+  )
+ggplot(data, aes(x = room_type, y = reviews_per_month)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(title = "Reviews per Month by Room Type",
+       x = "Room Type", y = "Reviews per Month") +
+  theme_minimal()
+ggplot(data, aes(x = room_type)) +
+  geom_bar(fill = "lightgreen") +
+  labs(title = "Distribution of Room Types",
+       x = "Room Type", y = "Count") +
+  theme_minimal()
+# Create a new column to categorize host activity levels
+data <- data %>%
+  mutate(host_activity = ifelse(calculated_host_listings_count == 1, "Single Listing", "Multiple Listings"))
+
+# Boxplot of Price by Host Activity Level
+ggplot(data, aes(x = host_activity, y = price)) +
+  geom_boxplot(fill = "lightcoral", color = "darkred") +
+  labs(title = "Price by Host Activity Level",
+       x = "Host Activity Level", y = "Price") +
+  theme_minimal()
+# Create a new column to categorize host activity levels
+data <- data %>%
+  mutate(host_activity = ifelse(calculated_host_listings_count == 1, "Single Listing", "Multiple Listings"))
+
+# Boxplot of Price by Host Activity Level
+ggplot(data, aes(x = host_activity, y = price)) +
+  geom_boxplot(fill = "lightcoral", color = "darkred") +
+  labs(title = "Price by Host Activity Level",
+       x = "Host Activity Level", y = "Price") +
+  theme_minimal()
+ggplot(data, aes(x = price, y = reviews_per_month)) +
+  geom_point(alpha = 0.5, color = "steelblue") +
+  labs(title = "Price vs. Reviews per Month",
+       x = "Price", y = "Reviews per Month") +
+  theme_minimal()
+ggplot(data, aes(x = price)) +
+  geom_histogram(binwidth = 25, fill = "purple", color = "black") +
+  labs(title = "Distribution of Prices",
+       x = "Price", y = "Frequency") +
+  theme_minimal()
+```
