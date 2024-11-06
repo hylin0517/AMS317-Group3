@@ -34,6 +34,22 @@ data <- data %>%
   ungroup()
 ```
 
+# Data Cleaning 
+```{r}
+# Count rows where number_of_reviews is 0 and reviews_per_month is NA
+count_na_reviews_per_month <- sum(is.na(data$reviews_per_month) & data$number_of_reviews == 0)
+
+# Count total rows where number_of_reviews is 0
+count_zero_reviews <- sum(data$number_of_reviews == 0)
+
+# Check if all rows with number_of_reviews == 0 have reviews_per_month as NA
+all_zero_reviews_are_na <- count_na_reviews_per_month == count_zero_reviews
+all_zero_reviews_are_na
+
+# Replace NA values in reviews_per_month with 0 where number_of_reviews is 0
+data <- data %>%
+  mutate(reviews_per_month = ifelse(is.na(reviews_per_month) & number_of_reviews == 0, 0, reviews_per_month))
+```
 # Question 1: Test the Influence of Room on Reviews Per Month
 ```{r}
 anova_result <- aov(reviews_per_month ~ room_type, data = data)
