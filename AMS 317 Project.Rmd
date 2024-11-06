@@ -12,13 +12,69 @@ knitr::opts_chunk$set(echo = TRUE)
 # Read Data
 ```{r}
 library(readr)
+library(dplyr)
+# Read dataset
 data <- read_csv("/Users/hyl/Downloads/AB_NYC_2019.csv")
+
+# Data Inspection
+str(data)
 head(data)
+summary(data)
 ```
 
-# Check for Missing Data
 ```{r}
-sapply(data, function(x) sum(is.na(x)))
+# Check for NA
+data <- data %>%
+  filter(!is.na(reviews_per_month), !is.na(price), !is.na(room_type))
+
+# Add a column to show host activity level: single-listing or multiple-listing hosts
+data <- data %>%
+  group_by(host_id) %>%
+  mutate(host_activity = ifelse(n() == 1, "single", "multiple")) %>%
+  ungroup()
+```
+
+# Question 1: Test the Influence of Room on Reviews Per Month
+```{r}
+anova_result <- aov(reviews_per_month ~ room_type, data = data)
+summary(anova_result)
+```
+With this p-value: we reject the null hypothesis -> there is a significant difference in the reviews per month across different room types.
+```{r}
+# Boxplot for Room Type vs Reviews Per Month
+library(ggplot2)
+
+ggplot(data, aes(x = room_type, y = reviews_per_month)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  labs(title = "Reviews Per Month by Room Type",
+       x = "Room Type",
+       y = "Reviews Per Month") +
+  theme_minimal()
+```
+
+# Question 2: Test for Price Differences between Host Activity Level
+```{r}
+t_test_result <- t.test(price ~ host_activity, data = data, var.equal = TRUE)
+t_test_result
+```
+```{r}
+# Plots for Question 2
+# Density plot to show distribution
+ggplot(data, aes(x = price, fill = host_activity)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Density Plot of Price by Host Activity Level",
+       x = "Price",
+       y = "Density",
+       fill = "Host Activity Level") +
+  theme_minimal()
+
+# Boxplot
+ggplot(data, aes(x = host_activity, y = price)) +
+  geom_boxplot(fill = "lightcoral", color = "black") +
+  labs(title = "Price Comparison by Host Activity Level",
+       x = "Host Activity Level",
+       y = "Price") +
+  theme_minimal()
 ```
 
 
