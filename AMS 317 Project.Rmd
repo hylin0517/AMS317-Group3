@@ -85,3 +85,44 @@ ggplot(data, aes(x = price)) +
        x = "Price", y = "Frequency") +
   theme_minimal()
 ```
+
+
+
+
+
+
+
+# Hypothesis 3: Do properties in certain neighborhoods receive significantly more reviews than others?
+```{r}
+# Summary statistics by neighborhood
+data %>%
+  group_by(neighbourhood) %>%
+  summarise(
+    count = n(),
+    avg_reviews_per_month = mean(reviews_per_month, na.rm = TRUE),
+    median_reviews_per_month = median(reviews_per_month, na.rm = TRUE)
+  )
+
+# Boxplot of Reviews per Month by Neighborhood
+ggplot(data, aes(x = neighbourhood, y = reviews_per_month)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  labs(
+    title = "Reviews per Month by Neighborhood",
+    x = "Neighborhood",
+    y = "Reviews per Month"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), minimal())
+
+# Kruskal-Wallis test for reviews per month by neighborhood
+kruskal_test <- kruskal.test(reviews_per_month ~ neighbourhood, data = data)
+kruskal_test
+
+# Violin plot to show distribution in each neighborhood
+ggplot(data, aes(x = neighbourhood, y = reviews_per_month)) +
+  geom_violin(fill = "lightgreen", color = "darkgreen") +
+  labs(
+    title = "Distribution of Reviews per Month by Neighborhood",
+    x = "Neighborhood",
+    y = "Reviews per Month"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), minimal())
