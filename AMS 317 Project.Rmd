@@ -130,4 +130,3 @@ ggplot(data, aes(x = neighbourhood_group, y = reviews_per_month)) +
 kruskal_test <- kruskal.test(reviews_per_month ~ neighbourhood_group, data = data)
 kruskal_test
 ```
-
