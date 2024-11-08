@@ -13,7 +13,7 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 
-data <- read_csv("/Users/hyl/Downloads/AB_NYC_2019.csv")
+data <- read_csv("AB_NYC_2019.csv")
 
 # Summary statistics for variables that are tested for the hypothesis.
 summary(data %>% select(room_type, neighbourhood_group, reviews_per_month))
