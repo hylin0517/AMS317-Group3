@@ -1,40 +1,27 @@
 ---
 title: "AMS 317 Linear Regression Project"
-author: "Group 3: "
+author: "Group 3: Hao Yang Lin, Ariadna Sandoya, Arjun Talapatra, Benjamin Novik"
 date: "Due Date: November 10, 2024"
 output: pdf_document
 ---
+Hypothesis 1: Does **room type** (e.g., private room vs. entire home/apartment) influence the number of **reviews per month**?
+Hypothesis 2: Do properties in certain **neighborhoods** receive significantly **more reviews** than others?
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-# Read Data
 ```{r}
+# Load data and check for missing values
 library(readr)
 library(dplyr)
-# Read dataset
+library(ggplot2)
+
 data <- read_csv("/Users/hyl/Downloads/AB_NYC_2019.csv")
 
-# Data Inspection
-str(data)
-head(data)
-summary(data)
+# Summary statistics for variables that are tested for the hypothesis.
+summary(data %>% select(room_type, neighbourhood_group, reviews_per_month))
+missing_values <- sapply(data, function(x) sum(is.na(x)))
+print(missing_values)
 ```
+The resulting output shows us that these following variables have missing values: name, host_name, last_review and reviews_per_month with missing values of 16, 21, 10052 & 10052 respectively. From this, it is shown that the variables, last_review and reviews_per_month are likely correlated. If a listing has no reviews, logically there will not be any reviews for the calculated average. 
 
-```{r}
-# Check for NA
-data <- data %>%
-  filter(!is.na(reviews_per_month), !is.na(price), !is.na(room_type))
-
-# Add a column to show host activity level: single-listing or multiple-listing hosts
-data <- data %>%
-  group_by(host_id) %>%
-  mutate(host_activity = ifelse(n() == 1, "single", "multiple")) %>%
-  ungroup()
-```
-
-# Data Cleaning 
 ```{r}
 # Count rows where number_of_reviews is 0 and reviews_per_month is NA
 count_na_reviews_per_month <- sum(is.na(data$reviews_per_month) & data$number_of_reviews == 0)
@@ -49,9 +36,14 @@ all_zero_reviews_are_na
 # Replace NA values in reviews_per_month with 0 where number_of_reviews is 0
 data <- data %>%
   mutate(reviews_per_month = ifelse(is.na(reviews_per_month) & number_of_reviews == 0, 0, reviews_per_month))
-```
 
-# Exploring dataset
+
+missing_values <- sapply(data, function(x) sum(is.na(x)))
+print(missing_values)
+```
+As observed after the data cleaning process, the majority of variables do not have any missing values anymore aside from last_review, name and host_name. Because these three variables does not pertain any importance to any interest in our analysis, the values can be left as missing.  
+
+# Data Exploration
 ```{r}
 # Summary statistics for room types
 data %>%
@@ -62,7 +54,16 @@ data %>%
     avg_reviews_per_month = mean(reviews_per_month, na.rm = TRUE)
   )
 
-# Boxplot of Reviews per Month by Room type
+summary_stats <- data %>%
+  group_by(room_type) %>%
+  summarise(
+    mean_reviews = mean(reviews_per_month),
+    median_reviews = median(reviews_per_month),
+    sd_reviews = sd(reviews_per_month)
+  )
+summary_stats
+
+# Box plot of Reviews per Month by Room type
 ggplot(data, aes(x = room_type, y = reviews_per_month)) +
   geom_boxplot(fill = "lightblue", color = "darkblue") +
   labs(title = "Reviews per Month by Room Type",
@@ -76,17 +77,6 @@ ggplot(data, aes(x = room_type)) +
        x = "Room Type", y = "Count") +
   theme_minimal()
 
-# Create a new column to categorize host activity levels
-data <- data %>%
-  mutate(host_activity = ifelse(calculated_host_listings_count == 1, "Single Listing", "Multiple Listings"))
-
-# Boxplot of Price by Host Activity Level
-ggplot(data, aes(x = host_activity, y = price)) +
-  geom_boxplot(fill = "lightcoral", color = "darkred") +
-  labs(title = "Price by Host Activity Level",
-       x = "Host Activity Level", y = "Price") +
-  theme_minimal()
-
 # Price vs. Reviews per Month
 ggplot(data, aes(x = price, y = reviews_per_month)) +
   geom_point(alpha = 0.5, color = "steelblue") +
@@ -96,54 +86,48 @@ ggplot(data, aes(x = price, y = reviews_per_month)) +
 
 # Distribution of prices
 ggplot(data, aes(x = price)) +
-  geom_histogram(binwidth = 25, fill = "purple", color = "black") +
+  geom_histogram(binwidth = 20, fill = "purple", color = "black") +
   labs(title = "Distribution of Prices",
        x = "Price", y = "Frequency") +
   theme_minimal()
 ```
 
-# Question 1: Test the Influence of Room on Reviews Per Month
-```{r}
-anova_result <- aov(reviews_per_month ~ room_type, data = data)
-summary(anova_result)
-```
-With this p-value: we reject the null hypothesis -> there is a significant difference in the reviews per month across different room types.
-```{r}
-# Boxplot for Room Type vs Reviews Per Month
-library(ggplot2)
+# Hypothesis 1: ANOVA Test  
+Since our dataset is finitely large, over 40000 values, we can assume normality in our data. Thus, performing anova suffices.
 
-ggplot(data, aes(x = room_type, y = reviews_per_month)) +
-  geom_boxplot(fill = "lightblue", color = "black") +
-  labs(title = "Reviews Per Month by Room Type",
-       x = "Room Type",
-       y = "Reviews Per Month") +
-  theme_minimal()
-```
-
-# Question 2: Test for Price Differences between Host Activity Level
 ```{r}
-t_test_result <- t.test(price ~ host_activity, data = data, var.equal = TRUE)
-t_test_result
-```
-```{r}
-# Plots for Question 2
-# Density plot to show distribution
-ggplot(data, aes(x = price, fill = host_activity)) +
-  geom_density(alpha = 0.5) +
-  labs(title = "Density Plot of Price by Host Activity Level",
-       x = "Price",
-       y = "Density",
-       fill = "Host Activity Level") +
-  theme_minimal()
+# ANOVA test for Reviews per Month by Room Type
+anova_reviews <- aov(reviews_per_month ~ room_type, data = data)
+summary(anova_reviews)
 
-# Boxplot
-ggplot(data, aes(x = host_activity, y = price)) +
-  geom_boxplot(fill = "lightcoral", color = "black") +
-  labs(title = "Price Comparison by Host Activity Level",
-       x = "Host Activity Level",
-       y = "Price") +
-  theme_minimal()
+data <- data %>%
+  mutate(log_reviews_per_month = log(reviews_per_month + 0.1))
+
+# Plot the log-transformed data by Room Type
+ggplot(data, aes(x = room_type, y = log_reviews_per_month)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
+  labs(title = "Log-Transformed Reviews per Month by Room Type",
+       x = "Room Type", y = "Log of Reviews per Month")
+
 ```
 
+# Hypothesis 2: Borough Influence on Reviews per Month
+```{r}
+# Summary Statistucs of Borough
+data %>%
+  group_by(neighbourhood_group) %>%
+  summarise(
+    count = n(),
+    avg_reviews_per_month = mean(reviews_per_month, na.rm = TRUE),
+    median_reviews_per_month = median(reviews_per_month, na.rm = TRUE)
+  )
+#  Review per Month by Neighborhood Group
+ggplot(data, aes(x = neighbourhood_group, y = reviews_per_month)) +
+  geom_boxplot() +
+  labs(title = "Reviews per Month by Neighborhood Group", x = "Neighborhood Group", y = "Reviews per Month")
 
+# Kruskal-Wallis test for Reviews per Month by Neighborhood Group
+kruskal_test <- kruskal.test(reviews_per_month ~ neighbourhood_group, data = data)
+kruskal_test
+```
 
