@@ -191,14 +191,11 @@ kruskal_test
 ```
 Since KW test is signficant, we can perform a Dunn’s test to pinpoint which specific neighborhood groups differ from each other in terms of reviews_per_month.
 
-r
-Copy code
-
 ```{r}
 library(FSA)
-
 # Post-hoc Dunn's test with Bonferroni correction
 dunn_test <- dunnTest(reviews_per_month ~ neighbourhood_group, data = data, method = "bonferroni")
 print(dunn_test)
 ```
 The Kruskal-Wallis test combined with Dunn’s post-hoc analysis, indicates that review frequency varies significantly across most neighborhood groups.
+
