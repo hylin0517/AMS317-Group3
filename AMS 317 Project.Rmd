@@ -71,6 +71,7 @@ ggplot(data, aes(x = room_type, y = reviews_per_month)) +
   labs(title = "Reviews per Month by Room Type",
        x = "Room Type", y = "Reviews per Month") +
   theme_minimal()
+# The majority of reviews per month are skewed towards the lower values for all the room types. Moreover, extreme outliers are present, especially for the "private room" type. This indicates a few private rooms recieve far more reviews
 
 # Distribution of room types
 ggplot(data, aes(x = room_type)) +
@@ -78,6 +79,7 @@ ggplot(data, aes(x = room_type)) +
   labs(title = "Distribution of Room Types",
        x = "Room Type", y = "Count") +
   theme_minimal()
+# "Entire home/apartment" is the most common room type, followed by "private room," and "shared room" is the least common.
 
 # Price vs. Reviews per Month
 ggplot(data, aes(x = price, y = reviews_per_month)) +
@@ -85,6 +87,7 @@ ggplot(data, aes(x = price, y = reviews_per_month)) +
   labs(title = "Price vs. Reviews per Month",
        x = "Price", y = "Reviews per Month") +
   theme_minimal()
+#The relationship between price and reviews is non-linear. There is an inverse relationship betweeen review counts and prices. This suggests affordability encourages more reviews. However, there are outliers that indicate some high-priced properties recieve a higher number of reviews despite this trend. 
 
 # Distribution of prices
 ggplot(data, aes(x = price)) +
@@ -92,6 +95,7 @@ ggplot(data, aes(x = price)) +
   labs(title = "Distribution of Prices",
        x = "Price", y = "Frequency") +
   theme_minimal()
+#This indicates prices are heavily skewed to the right - most listings are priced at under $1000 with some listings significantly higher. 
 ```
 
 # Hypothesis 1: ANOVA Test  
