@@ -12,8 +12,9 @@ Hypothesis 2: Do properties in certain **neighborhoods** receive significantly *
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(car)
 
-data <- read_csv("AB_NYC_2019.csv")
+data <- read_csv("airbnb.csv")
 
 # Summary statistics for variables that are tested for the hypothesis.
 summary(data %>% select(room_type, neighbourhood_group, reviews_per_month))
@@ -35,7 +36,8 @@ all_zero_reviews_are_na
 
 # Replace NA values in reviews_per_month with 0 where number_of_reviews is 0
 data <- data %>%
-  mutate(reviews_per_month = ifelse(is.na(reviews_per_month) & number_of_reviews == 0, 0, reviews_per_month))
+  mutate(reviews_per_month = ifelse(is.na(reviews_per_month) & 
+                                      number_of_reviews == 0, 0, reviews_per_month))
 
 
 missing_values <- sapply(data, function(x) sum(is.na(x)))
@@ -111,6 +113,63 @@ ggplot(data, aes(x = room_type, y = log_reviews_per_month)) +
 
 ```
 
+# Check for Normality of Residuals
+```{r}
+# ANOVA test for Reviews per Month by Room Type
+anova_reviews <- aov(log_reviews_per_month ~ room_type, data = data)
+summary(anova_reviews)
+
+# Histogram of residuals for visual inspection
+hist(residuals(anova_reviews), main = "Histogram of Residuals", xlab = "Residuals", breaks = 30)
+
+# Kolmogorov-Smirnov Test for normality of residuals 
+ks_test <- ks.test(residuals(anova_reviews), 
+                   "pnorm", mean = mean(residuals(anova_reviews)), 
+                   sd = sd(residuals(anova_reviews)))
+print(ks_test)
+
+qqnorm(residuals(anova_reviews))
+qqline(residuals(anova_reviews), col = "blue")
+```
+We did not use Shapiro-Wilk test for normality because R only allows sample size of 5 to 50000, so we decided to use Kolmogorov-Smirnov Test for normality of residuals.  
+
+# Trimming Data 
+```{r}
+# Calculate the 45th and 55th percentiles for reviews_per_month
+lower_bound <- quantile(data$reviews_per_month, 0.45, na.rm = TRUE)
+upper_bound <- quantile(data$reviews_per_month, 0.55, na.rm = TRUE)
+
+# Filter data to include only the middle 80% (10th to 90th percentile)
+middle_data <- data %>%
+  filter(reviews_per_month >= lower_bound & reviews_per_month <= upper_bound)
+
+# Transformation of the middle quantile
+middle_data <- middle_data %>%
+  mutate(log_reviews_per_month = log(reviews_per_month + 0.1))
+
+# Fit the ANOVA model on the filtered data
+anova_middle <- aov(log_reviews_per_month ~ room_type, data = middle_data)
+summary(anova_middle)
+
+# Check assumptions on the middle quantile data
+# Q-Q plot for residuals
+qqnorm(residuals(anova_middle))
+qqline(residuals(anova_middle), col = "blue")
+
+# Histogram of residuals
+hist(residuals(anova_middle), main = "Histogram of Residuals", xlab = "Residuals", breaks = 30)
+
+# Shapiro-Wilk test for normality for the middle 45%-55% quantile
+shapiro_test_middle <- shapiro.test(residuals(anova_middle))
+print(shapiro_test_middle)
+
+# Levene's test for homogeneity of variances
+levene_test_middle <- leveneTest(log_reviews_per_month ~ room_type, data = middle_data)
+print(levene_test_middle)
+
+```
+
+
 # Hypothesis 2: Borough Influence on Reviews per Month
 ```{r}
 # Summary Statistucs of Borough
@@ -130,3 +189,13 @@ ggplot(data, aes(x = neighbourhood_group, y = reviews_per_month)) +
 kruskal_test <- kruskal.test(reviews_per_month ~ neighbourhood_group, data = data)
 kruskal_test
 ```
+Since KW test is signficant, we can perform a Dunn’s test to pinpoint which specific neighborhood groups differ from each other in terms of reviews_per_month.
+
+```{r}
+library(FSA)
+# Post-hoc Dunn's test with Bonferroni correction
+dunn_test <- dunnTest(reviews_per_month ~ neighbourhood_group, data = data, method = "bonferroni")
+print(dunn_test)
+```
+The Kruskal-Wallis test combined with Dunn’s post-hoc analysis, indicates that review frequency varies significantly across most neighborhood groups.
+
