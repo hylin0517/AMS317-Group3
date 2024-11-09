@@ -166,8 +166,7 @@ summary(anova_middle)
 # Q-Q plot for residuals
 qqnorm(residuals(anova_middle))
 qqline(residuals(anova_middle), col = "blue")
-#The points in the middle appear align closely with the line, while points at the tails show more deviation. This indicates that while the central part of the residuals is approximately normal, the extreme values still show skewness. However, it is still close enough to showing a linear association which supports the use of ANOVA. 
-
+#The points in the middle appear align closely with the line, while points at the tails show more deviation. This indicates that while the central part of the residuals is approximately normal, the extreme values still show skewness. 
 # Histogram of residuals
 hist(residuals(anova_middle), main = "Histogram of Residuals", xlab = "Residuals", breaks = 30)
 # This is approximately symmetric centered at around 0.0. There is less skewness compared to the untrimmed data. This relatively uniform distribution suggests that using ANOVA is useful after the transformation.
@@ -183,6 +182,7 @@ print(levene_test_middle)
 # p = 0.8321 indicates homogeneity of variances, which supports the use of ANOVA despite not satisfying normality of residuals.
 
 ```
+Overall Analysis for Hypothesis 1: ANOVA Test: ANOVA shows there is significant association between room type and reviews per month, which remains after the data cleaning, although at a weaker strength. The F-statistic and p-values from ANOVA confirm that at least one room type has a mean number of reviews that significantly differs from the rest. Despite having residuals deviate from normality, even after the transformations. Levene’s Test supports the use of ANOVA. 
 
 
 # Hypothesis 2: Borough Influence on Reviews per Month
