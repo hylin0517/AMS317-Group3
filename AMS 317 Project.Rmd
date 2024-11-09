@@ -105,6 +105,7 @@ Since our dataset is finitely large, over 40000 values, we can assume normality 
 # ANOVA test for Reviews per Month by Room Type
 anova_reviews <- aov(reviews_per_month ~ room_type, data = data)
 summary(anova_reviews)
+# Our null hypothesis is that The mean number of reviews per month is the same across all room types (private room, entire hom/apt, shared room). Our alternative hypothesis is that at least one room type has a mean number of reviews per month that is significantly different from the others. The Pr(>F) value of 1.79e-10 is significantly smaller than 0.05, meaning we reject the null hypothesis. This indicates at least one room type has a mean significantly different from the others. The F-statistic of 22.45 also indicates a significant differences in the mean number of reviews per month among the three room types.
 
 data <- data %>%
   mutate(log_reviews_per_month = log(reviews_per_month + 0.1))
@@ -114,6 +115,7 @@ ggplot(data, aes(x = room_type, y = log_reviews_per_month)) +
   geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
   labs(title = "Log-Transformed Reviews per Month by Room Type",
        x = "Room Type", y = "Log of Reviews per Month")
+# Since the raw data was not normally distributed, this log transformation was applied to reviews_per_month to reduce the variance and to approximate normality. Although the mean and median seem close across different room types, there is still a visible difference indicating that there is a relationship between room type and reviews.
 
 ```
 
@@ -125,16 +127,19 @@ summary(anova_reviews)
 
 # Histogram of residuals for visual inspection
 hist(residuals(anova_reviews), main = "Histogram of Residuals", xlab = "Residuals", breaks = 30)
+#This shows the residuals are not perfectly normal. The histogram appears to be skewed to the right, with a very high frequency at the far left end of the histogram, an approximately symmetric central part, and a typical right-skewing pattern towards the right side of the histogram.
 
 # Kolmogorov-Smirnov Test for normality of residuals 
 ks_test <- ks.test(residuals(anova_reviews), 
                    "pnorm", mean = mean(residuals(anova_reviews)), 
                    sd = sd(residuals(anova_reviews)))
 print(ks_test)
+#The p-value of <2.2e-16 indicates that residuals deviate from a normal distribution.
 
 qqnorm(residuals(anova_reviews))
 qqline(residuals(anova_reviews), col = "blue")
 ```
+# Deviations at the tails further confirm residuals are not normally distributed.
 We did not use Shapiro-Wilk test for normality because R only allows sample size of 5 to 50000, so we decided to use Kolmogorov-Smirnov Test for normality of residuals.  
 
 # Trimming Data 
@@ -154,22 +159,28 @@ middle_data <- middle_data %>%
 # Fit the ANOVA model on the filtered data
 anova_middle <- aov(log_reviews_per_month ~ room_type, data = middle_data)
 summary(anova_middle)
+# Here, we chose to look at the middle 80 percent of the data to eliminate outliers and improve normality.
+# The F-statistic of 3.071 and p-value of 0.0465 indicate that after the transformation, room type still significantly affects reviews_per_month, but less strongly.
 
 # Check assumptions on the middle quantile data
 # Q-Q plot for residuals
 qqnorm(residuals(anova_middle))
 qqline(residuals(anova_middle), col = "blue")
+#The points in the middle appear align closely with the line, while points at the tails show more deviation. This indicates that while the central part of the residuals is approximately normal, the extreme values still show skewness. However, it is still close enough to showing a linear association which supports the use of ANOVA. 
 
 # Histogram of residuals
 hist(residuals(anova_middle), main = "Histogram of Residuals", xlab = "Residuals", breaks = 30)
+# This is approximately symmetric centered at around 0.0. There is less skewness compared to the untrimmed data. This relatively uniform distribution suggests that using ANOVA is useful after the transformation.
 
 # Shapiro-Wilk test for normality for the middle 45%-55% quantile
 shapiro_test_middle <- shapiro.test(residuals(anova_middle))
 print(shapiro_test_middle)
+# Indicates that residuals still aren't perfectly normally distributed b/c p-value is <2.2e-16.
 
 # Levene's test for homogeneity of variances
 levene_test_middle <- leveneTest(log_reviews_per_month ~ room_type, data = middle_data)
 print(levene_test_middle)
+# p = 0.8321 indicates homogeneity of variances, which supports the use of ANOVA despite not satisfying normality of residuals.
 
 ```
 
