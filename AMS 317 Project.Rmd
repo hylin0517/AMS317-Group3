@@ -131,7 +131,7 @@ print(ks_test)
 qqnorm(residuals(anova_reviews))
 qqline(residuals(anova_reviews), col = "blue")
 ```
-We did not use Shapiro-Wilk test for normality because R only allows sample size of 5 to 50000, so we decided to use for normality of residuals.  
+We did not use Shapiro-Wilk test for normality because R only allows sample size of 5 to 50000, so we decided to use Kolmogorov-Smirnov Test for normality of residuals.  
 
 # Trimming Data 
 ```{r}
