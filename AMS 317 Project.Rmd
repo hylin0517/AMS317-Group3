@@ -160,7 +160,7 @@ Since the raw data was not normally distributed, this log transformation was app
 anova_reviews <- aov(log_reviews_per_month ~ room_type, data = data)
 summary(anova_reviews)
 ```
-
+Since the p-value is significant (0.00276) < 0.05, we can conclude that there is a statistically significant effect of room_type on log_reviews_per_month. This means that at least one of the room types has a different average review rate from the others. However, lets see if the normality assumptions are valid after the log transformation.  
 
 ```{r}
 # Histogram of residuals for visual inspection
