@@ -22,6 +22,8 @@ library(FSA)
 data <- read_csv("airbnb.csv") # Loading Data
 ```
 
+data <- read_csv("/Users/hyl/Downloads/AB_NYC_2019.csv")
+
 # Data Description
 The dataset loaded includes the following columns relevant to our analysis:  
 - Room Type: Indicates the type of accommodation, with options like "Entire home/apt," "Private room," and "Shared room."  
@@ -29,6 +31,7 @@ The dataset loaded includes the following columns relevant to our analysis:
 - Reviews per Month: Measures the average number of reviews a listing receives each month.  
 - Price: The nightly price of the listing in U.S. dollars (although not a variable for the test, still good to know).  
 - Other: Various columns such as host_id, latitude, longitude, minimum_nights and availability-related variables that provide context for each listing but are not the main focus in this analysis.
+
 
 ```{r}
 # Summary statistics for variables that are tested for the hypothesis.
